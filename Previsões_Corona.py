@@ -21,29 +21,34 @@ ysuspeitos = df['Suspeitos']
 yconfirmados = df['Confirmados']
 
 #%%
-# fit data to confirmed
+# fit data to confirmed cases
 
 coronaconf = StepModel(form='logistic')
 
+#parameters to fit apointed by the user
 parameters = coronaconf.make_params()
 parameters.add('amplitude', value=15000  )#, min=10000, max=20000)
 parameters.add('center', value=100)
 parameters.add('sigma', value=1.10  )#, max=3)
 
+#parameters to fit guesses by lmfit
 #pars = coronaconf.guess(yconfirmados, x=x)
 
 outputconf = coronaconf.fit(yconfirmados, parameters, x=x)
 print(outputconf.fit_report())
 
-# fit data to suspects 
+# fit data to suspect cases
 
 coronasusp = StepModel(form='logistic')
+
+#parameters to fit apointed by the user
 '''
 param = coronasusp.make_params()
 param.add('amplitude', value=15000  )#, min=10000, max=20000)
 param.add('center', value=100)
 param.add('sigma', value=1.10  )#, max=3)
 '''
+#parameters to fit guesses by lmfit
 param = coronasusp.guess(ysuspeitos, x=x)
 
 outputsusp = coronasusp.fit(ysuspeitos, param, x=x)
