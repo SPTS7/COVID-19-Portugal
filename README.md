@@ -5,4 +5,5 @@ A small script to try and model the growth of the COVID-19 epidemic in Portugal 
 + Makes a simple prediction acording to a logistic function
 
 
-![Actual Prediction](Capture.PNG)
+## Disclaimer
+All of this information is made purely as a personal project. It does not have any kind of scientific validity whatsoever.
