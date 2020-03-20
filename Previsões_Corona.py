@@ -131,7 +131,7 @@ def predictions(df):  # make everything
     amplitudesusp, centersusp, outputsusp, outputsuspreport = fitlogistic(x, ysuspeitos)
     Diaconf, Diamaxconf = convertdateconf(centerconf)
     Diasusp, Diamaxsusp = convertdatesusp(centersusp)
-    Diamaxpre, pred = predict13(amplitudeconf, amplitudesusp, Diaconf, Diasusp)
+    Diamaxpre, pred = predict13(amplitudesusp, amplitudeconf, Diaconf, Diasusp)
     plot(
         x,
         yconfirmados,
