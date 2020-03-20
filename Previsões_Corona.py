@@ -42,13 +42,13 @@ def fiterf(x, y):  # fit a error function
 
 
 def convertdateconf(centerc):  # convert date for confirmed cases
-    diac = centerc - 71 + centerc
+    diac = centerc - 70 + centerc
     diamaxc = datetime.datetime(2020, 1, 1) + datetime.timedelta(diac - 1)
     return diac, diamaxc
 
 
 def convertdatesusp(centers):  # convert date for suspected cases
-    dias = centers - 65 + centers
+    dias = centers - 63 + centers
     diamaxs = datetime.datetime(2020, 1, 1) + datetime.timedelta(dias - 1)
     return dias, diamaxs
 
@@ -128,7 +128,7 @@ def predictions(df):  # make everything
     amplitudeconf, centerconf, outputconf, outputconfreport = fitlogistic(
         x, yconfirmados
     )
-    amplitudesusp, centersusp, outputsusp, outputsuspreport = fitlogistic(x, ysuspeitos)
+    amplitudesusp, centersusp, outputsusp, outputsuspreport = fiterf(x, ysuspeitos)
     Diaconf, Diamaxconf = convertdateconf(centerconf)
     Diasusp, Diamaxsusp = convertdatesusp(centersusp)
     Diamaxpre, pred = predict13(amplitudesusp, amplitudeconf, Diaconf, Diasusp)
