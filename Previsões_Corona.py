@@ -48,21 +48,24 @@ centersusp = outputsusp.params["center"].value
 
 
 #%%
-# Predictions
+# Conversão dos dias e datas
 Diaconf = centerconf - 72 + centerconf
 Diasusp = centersusp - 67 + centersusp
 Diamaxconf = datetime.datetime(2020, 1, 1) + datetime.timedelta(Diaconf - 1)
 Diamaxsusp = datetime.datetime(2020, 1, 1) + datetime.timedelta(Diasusp - 1)
 
+#%%
+# Previsão de 1/3. 1/3 entre os suspeitos e os confirmados
 
-result = (
-    "O numero máximo de infectados será atingido no dia "
-    + str(Diamaxconf.strftime("%d/%m/%Y"))
-    + " em que se esperam "
-    + str(amplitudeconf)
-    + " casos."
-)
+a = amplitudesusp - amplitudeconf
+b = a / 3
+pred = amplitudeconf + b
+pred = math.floor(pred)
 
+aa = Diasusp - Diaconf
+bb = aa / 3
+predia = Diaconf + bb
+Diamaxpre = datetime.datetime(2020, 1, 1) + datetime.timedelta(predia - 1)
 
 #%%
 # figures
@@ -75,22 +78,39 @@ fig.subplots_adjust(top=0.85)
 ax.set_xlabel("Dia do ano")
 ax.set_ylabel("Casos")
 ax.text(
-    60.5,
-    5000,
-    r"O numero máximo de infectados será atingido no dia"
-    "\n"
+    60.2,
+    6700,
+    r"Pelo fit dos dados o numero máximo de infectados "
+    + "\n"
+    + "será atingido no dia "
     + str(Diamaxconf.strftime("%d/%m/%Y"))
     + " em que se esperam "
+    + "\n"
     + str(amplitudeconf)
     + " casos.",
-    fontsize=11,
+    fontsize=10,
 )
 
+ax.text(
+    60.2,
+    4500,
+    r"Fazendo uma previsão (adicionando 1/3 da diferença"
+    + "\n"
+    + "entre os suspeitos e confirmados) com base nos dados"
+    + "\n"
+    + "o numero máximo de infectados será atingido no dia "
+    + "\n"
+    + str(Diamaxpre.strftime("%d/%m/%Y"))
+    + " em que se esperam "
+    + str(pred)
+    + " casos.",
+    fontsize=10,
+)
 
 ax.plot(x, yconfirmados, "ro", label="Casos confirmados")
 ax.plot(x, outputconf.best_fit, label="Fit casos confirmados")
 ax.plot(x, ysuspeitos, "bo", label="Casos suspeitos")
 ax.plot(x, outputsusp.best_fit, label="Fit casos suspeitos")
-ax.legend(loc="center left")
+ax.legend(loc="center left", bbox_to_anchor=(0.02, 0.3))
 plt.show()
 # %%
