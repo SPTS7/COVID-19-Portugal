@@ -53,15 +53,15 @@ def convertdatesusp(centers):  # convert date for suspected cases
     return dias, diamaxs
 
 
-def predict13(
+def predict16(
     ampsusp, ampconf, diaconf, diasusp
 ):  # make a prediction from 1/3 of the difference of cases
     a = ampsusp - ampconf
-    b = a / 3
+    b = a / 6
     pred = ampconf + b
     pred = math.floor(pred)
     aa = diasusp - diaconf
-    bb = aa / 3
+    bb = aa / 6
     predia = diaconf + bb
     diapre = datetime.datetime(2020, 1, 1) + datetime.timedelta(predia - 1)
     return diapre, pred
@@ -87,7 +87,7 @@ def plot(  # plot all the data
     ax.set_ylabel("Casos")
     ax.text(
         60.2,
-        6700,
+        8500,
         r"Pelo fit dos dados o numero máximo de infectados "
         + "\n"
         + "será atingido no dia "
@@ -101,8 +101,8 @@ def plot(  # plot all the data
 
     ax.text(
         60.2,
-        4500,
-        r"Fazendo uma previsão (adicionando 1/3 da diferença"
+        5500,
+        r"Fazendo uma previsão (adicionando 1/6 da diferença"
         + "\n"
         + "entre os suspeitos e confirmados) com base nos dados"
         + "\n"
@@ -128,10 +128,10 @@ def predictions(df):  # make everything
     amplitudeconf, centerconf, outputconf, outputconfreport = fitlogistic(
         x, yconfirmados
     )
-    amplitudesusp, centersusp, outputsusp, outputsuspreport = fiterf(x, ysuspeitos)
+    amplitudesusp, centersusp, outputsusp, outputsuspreport = fitlogistic(x, ysuspeitos)
     Diaconf, Diamaxconf = convertdateconf(centerconf)
     Diasusp, Diamaxsusp = convertdatesusp(centersusp)
-    Diamaxpre, pred = predict13(amplitudesusp, amplitudeconf, Diaconf, Diasusp)
+    Diamaxpre, pred = predict16(amplitudesusp, amplitudeconf, Diaconf, Diasusp)
     plot(
         x,
         yconfirmados,
