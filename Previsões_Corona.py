@@ -87,7 +87,7 @@ def plot(  # plot all the data
     ax.set_ylabel("Casos")
     ax.text(
         60.2,
-        8500,
+        11000,
         r"Pelo fit dos dados o numero máximo de infectados "
         + "\n"
         + "será atingido no dia "
@@ -101,7 +101,7 @@ def plot(  # plot all the data
 
     ax.text(
         60.2,
-        5500,
+        7000,
         r"Fazendo uma previsão (adicionando 1/6 da diferença"
         + "\n"
         + "entre os suspeitos e confirmados) com base nos dados"
