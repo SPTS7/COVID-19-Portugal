@@ -13,12 +13,14 @@ import pandas as pd
 import datetime
 
 # Functions
+#%%
 
 
 def generate_data(df):  # generate dataframes from csv file
     return df["Dia Ano"], df["Suspeitos"], df["Confirmados"]
 
 
+#%%
 def fitlogistic(x, y):  # fit a logistic function
     model = StepModel(form="logistic")
     # parameters to fit guesses by lmfit
@@ -28,6 +30,9 @@ def fitlogistic(x, y):  # fit a logistic function
     amplitude = math.floor(amplitude)
     center = output.params["center"].value
     return amplitude, center, output.best_fit, output.fit_report()
+
+
+#%%
 
 
 def fiterf(x, y):  # fit a error function
@@ -41,18 +46,21 @@ def fiterf(x, y):  # fit a error function
     return amplitude, center, output.best_fit, output.fit_report()
 
 
+#%%
 def convertdateconf(centerc):  # convert date for confirmed cases
     diac = centerc - 70 + centerc
     diamaxc = datetime.datetime(2020, 1, 1) + datetime.timedelta(diac - 1)
     return diac, diamaxc
 
 
+#%%
 def convertdatesusp(centers):  # convert date for suspected cases
     dias = centers - 63 + centers
     diamaxs = datetime.datetime(2020, 1, 1) + datetime.timedelta(dias - 1)
     return dias, diamaxs
 
 
+#%%
 def predict16(
     ampsusp, ampconf, diaconf, diasusp
 ):  # make a prediction from 1/3 of the difference of cases
@@ -67,6 +75,7 @@ def predict16(
     return diapre, pred
 
 
+#%%
 def plot(  # plot all the data
     x,
     yconfirmados,
@@ -123,6 +132,7 @@ def plot(  # plot all the data
     plt.show()
 
 
+#%%
 def predictions(df):  # make everything
     x, ysuspeitos, yconfirmados = generate_data(df)
     amplitudeconf, centerconf, outputconf, outputconfreport = fitlogistic(
