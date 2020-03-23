@@ -7,4 +7,4 @@ A small script to try and model the growth of the COVID-19 epidemic in Portugal 
 +In the process of implementing a more sophisticated prediction method.
 
 ## Disclaimer
-All of this information is made purely as a personal project. It does not have any kind of scientific validity whatsoever.
+All of this information does not have any kind of scientific validity whatsoever.
