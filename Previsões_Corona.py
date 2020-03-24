@@ -120,6 +120,7 @@ def plot(  # plot all the data
     plt.gca().xaxis.set_major_formatter(mdates.DateFormatter("%Y-%m-%d"))
     plt.gca().xaxis.set_major_locator(mdates.DayLocator(interval=4))
     plt.gcf().autofmt_xdate()
+    plt.savefig("prediction.pdf")
     plt.show()
 
 
