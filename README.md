@@ -5,7 +5,7 @@ A small script to try and model the growth of the COVID-19 epidemic in Portugal 
 - Uses data from the excel file included, updating daily acording to DGS
 - Makes a simple prediction acording to a logistic or error function
 
-![Prediction](prediction.ng)
+![Prediction](prediction.png)
 
 +In the process of implementing a more sophisticated prediction method.
 
