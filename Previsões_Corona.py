@@ -50,6 +50,35 @@ def fitlogistic(x, y, dias):  # fit a logistic function
     return amplitude, center, sigma, xfit, fit, cumulative, output.fit_report()
 
 
+def fiterf(x, y, dias):  # fit a logistic function
+    model = StepModel(form="erf")
+    # parameters to fit guesses by lmfit
+    parameters = model.guess(y, x=x)
+    output = model.fit(y, parameters, x=x)
+    amplitude = output.params["amplitude"].value
+    amplitude = math.floor(amplitude)
+    center = output.params["center"].value
+    sigma = output.params["sigma"].value
+    fit = []
+    xfit = []
+    cumulative = []
+    for i in range(61, dias):
+        if i == 61:
+            xfit.append(i)
+            alpha = (i - center) / sigma
+            value = amplitude * (1 - (1 / (1 + math.exp(alpha))))
+            fit.append(value)
+            cumulative.append(0)
+        else:
+            xfit.append(i)
+            alpha = (i - center) / sigma
+            value = amplitude * (1 - (1 / (1 + math.exp(alpha))))
+            fit.append(value)
+            c = value - fit[i - 62]
+            cumulative.append(c)
+    return amplitude, center, sigma, xfit, fit, cumulative, output.fit_report()
+
+
 def convertdateconf(centerc):  # convert date for confirmed cases
     diac = centerc - 70 + centerc
     diamaxc = datetime.datetime(2020, 1, 1) + datetime.timedelta(diac - 1)
@@ -75,23 +104,26 @@ def datas(x):
 def plot(  # plot all the data
     x,
     xconf,
-    xsusp,
     date,
     yconfirmados,
     outputconf,
+    erfoutputconf,
     cumconf,
+    erfcumconf,
     ysuspeitos,
-    outputsusp,
     Diamaxconf,
     amplitudeconf,
 ):
     fig = plt.figure()
     fig.suptitle("Casos de COVID-19 em portugal", fontsize=14, fontweight="bold")
 
-    ax1 = fig.add_subplot(211)
-    ax2 = fig.add_subplot(212)
-    # ax3 = fig.add_subplot(313)
+    ax1 = fig.add_subplot(411)
+    ax2 = fig.add_subplot(412)
+    ax3 = fig.add_subplot(413)
+    ax4 = fig.add_subplot(414)
+
     fig.subplots_adjust(top=0.80)
+
     ax1.set_title(
         "Ajustes logísticos"
         + "\n"
@@ -109,26 +141,34 @@ def plot(  # plot all the data
     ax1.legend()
 
     ax2.set_ylabel("Casos")
-    ax2.bar(date, cumconf, width=0.8, label="Cumulativo", color="g")
+    ax2.bar(date, cumconf, width=0.8, label="Casos novos", color="g")
+    ax2.xaxis.set_visible(False)
     ax2.legend()
 
-    # ax3.set_xlabel("Dia do ano")
-    # ax3.set_ylabel("Casos")
-    # ax3.plot(x, ysuspeitos, "mo", label="Casos suspeitos")
-    # ax3.plot(date, outputsusp, label="Fit Logístico")
-    # ax3.legend()
+    ax3.plot(x, yconfirmados, "mo", label="Casos suspeitos")
+    ax3.plot(xconf, erfoutputconf, label="Fit Função de Erro")
+    ax3.xaxis.set_visible(False)
+    ax3.legend()
+
+    ax4.set_ylabel("Casos")
+    ax4.bar(date, erfcumconf, width=0.8, label="ERF Casos novos", color="g")
+    ax4.legend()
+
     plt.gca().xaxis.set_major_formatter(mdates.DateFormatter("%Y-%m-%d"))
-    plt.gca().xaxis.set_major_locator(mdates.DayLocator(interval=4))
+    plt.gca().xaxis.set_major_locator(mdates.DayLocator(interval=7))
     plt.gcf().autofmt_xdate()
     plt.savefig("prediction.pdf")
     plt.savefig("prediction.png")
     plt.show()
 
 
-def export(x, out, cumu, dias, data):
+def export(x, out, erfout, cumu, erfcumu, dias, data):
 
     file = open("Previsoes.csv", "w")
-    file.write("Dia do ano, Data ,Fit_Logistico_Confirmados,Cumulativo" + "\n")
+    file.write(
+        "Dia do ano, Data,Fit_Logistico_Confirmados,Novos_Casos,Fit_ERF_Confirmados,ERF_Novos_casos"
+        + "\n"
+    )
     for i in range(61, dias):
         line = (
             str(i)
@@ -138,6 +178,10 @@ def export(x, out, cumu, dias, data):
             + str(out[i - 61])
             + ","
             + str(cumu[i - 61])
+            + ","
+            + str(erfout[i - 61])
+            + ","
+            + str(erfcumu[i - 61])
         )
         file.write(line + "\n")
 
@@ -156,31 +200,30 @@ def predictions(df, dias):  # make everything
         outputconfreport,
     ) = fitlogistic(x, yconfirmados, dias)
     (
-        amplitudesusp,
-        centersusp,
-        sigmasusp,
-        xsusp,
-        outputsusp,
-        cumsusp,
-        outputsuspreport,
-    ) = fitlogistic(x, ysuspeitos, dias)
+        erfamplitudeconf,
+        erfcenterconf,
+        erfsigmaconf,
+        erfxconf,
+        erfoutputconf,
+        erfcumconf,
+        erfoutputconfreport,
+    ) = fiterf(x, yconfirmados, dias)
     Diaconf, Diamaxconf = convertdateconf(centerconf)
-    Diasusp, Diamaxsusp = convertdatesusp(centersusp)
     dateplot, dateexport = datas(xconf)
     plot(
         x,
         xconf,
-        xsusp,
         dateplot,
         yconfirmados,
         outputconf,
+        erfoutputconf,
         cumconf,
+        erfcumconf,
         ysuspeitos,
-        outputsusp,
         Diamaxconf,
         amplitudeconf,
     )
-    export(xconf, outputconf, cumconf, dias, dateexport)
+    export(xconf, outputconf, erfoutputconf, cumconf, erfcumconf, dias, dateexport)
 
 
 #%%
