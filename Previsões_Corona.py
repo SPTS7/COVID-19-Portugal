@@ -1,5 +1,5 @@
 #%%
-
+# imports
 import math, scipy, pylab
 import glob, os
 import matplotlib.pyplot as plt
@@ -11,17 +11,17 @@ import numpy as np
 from numpy import loadtxt
 import pandas as pd
 import datetime
+import matplotlib.dates as mdates
 
-# Functions
 #%%
+# Functions
 
 
 def generate_data(df):  # generate dataframes from csv file
     return df["Dia Ano"], df["Suspeitos"], df["Confirmados"]
 
 
-#%%
-def fitlogistic(x, y):  # fit a logistic function
+def fitlogistic(x, y, dias):  # fit a logistic function
     model = StepModel(form="logistic")
     # parameters to fit guesses by lmfit
     parameters = model.guess(y, x=x)
@@ -29,137 +29,165 @@ def fitlogistic(x, y):  # fit a logistic function
     amplitude = output.params["amplitude"].value
     amplitude = math.floor(amplitude)
     center = output.params["center"].value
-    return amplitude, center, output.best_fit, output.fit_report()
+    sigma = output.params["sigma"].value
+    fit = []
+    xfit = []
+    cumulative = []
+    for i in range(61, dias):
+        if i == 61:
+            xfit.append(i)
+            alpha = (i - center) / sigma
+            value = amplitude * (1 - (1 / (1 + math.exp(alpha))))
+            fit.append(value)
+            cumulative.append(0)
+        else:
+            xfit.append(i)
+            alpha = (i - center) / sigma
+            value = amplitude * (1 - (1 / (1 + math.exp(alpha))))
+            fit.append(value)
+            c = value - fit[i - 62]
+            cumulative.append(c)
+    return amplitude, center, sigma, xfit, fit, cumulative, output.fit_report()
 
 
-#%%
-
-
-def fiterf(x, y):  # fit a error function
-    model = StepModel(form="erf")
-    # parameters to fit guesses by lmfit
-    parameters = model.guess(y, x=x)
-    output = model.fit(y, parameters, x=x)
-    amplitude = output.params["amplitude"].value
-    amplitude = math.floor(amplitude)
-    center = output.params["center"].value
-    return amplitude, center, output.best_fit, output.fit_report()
-
-
-#%%
 def convertdateconf(centerc):  # convert date for confirmed cases
     diac = centerc - 70 + centerc
     diamaxc = datetime.datetime(2020, 1, 1) + datetime.timedelta(diac - 1)
     return diac, diamaxc
 
 
-#%%
 def convertdatesusp(centers):  # convert date for suspected cases
     dias = centers - 63 + centers
     diamaxs = datetime.datetime(2020, 1, 1) + datetime.timedelta(dias - 1)
     return dias, diamaxs
 
 
-#%%
-def predict16(
-    ampsusp, ampconf, diaconf, diasusp
-):  # make a prediction from 1/3 of the difference of cases
-    a = ampsusp - ampconf
-    b = a / 6
-    pred = ampconf + b
-    pred = math.floor(pred)
-    aa = diasusp - diaconf
-    bb = aa / 6
-    predia = diaconf + bb
-    diapre = datetime.datetime(2020, 1, 1) + datetime.timedelta(predia - 1)
-    return diapre, pred
+def datas(x):
+    date = []
+    data = []
+    for n in x:
+        a = datetime.datetime(2020, 1, 1) + datetime.timedelta(n - 1)
+        date.append(a)
+        data.append(a.strftime("%d/%m/%Y"))
+    return date, data
 
 
-#%%
 def plot(  # plot all the data
     x,
+    xconf,
+    xsusp,
+    date,
     yconfirmados,
     outputconf,
+    cumconf,
     ysuspeitos,
     outputsusp,
     Diamaxconf,
     amplitudeconf,
-    Diamaxpre,
-    pred,
 ):
     fig = plt.figure()
     fig.suptitle("Casos de COVID-19 em portugal", fontsize=14, fontweight="bold")
-    ax = fig.add_subplot(111)
-    fig.subplots_adjust(top=0.85)
 
-    ax.set_xlabel("Dia do ano")
-    ax.set_ylabel("Casos")
-    ax.text(
-        60.2,
-        11000,
-        r"Pelo fit dos dados o numero máximo de infectados "
+    ax1 = fig.add_subplot(211)
+    ax2 = fig.add_subplot(212)
+    # ax3 = fig.add_subplot(313)
+    fig.subplots_adjust(top=0.80)
+    ax1.set_title(
+        "Ajustes logísticos"
         + "\n"
-        + "será atingido no dia "
+        + "Confirmados: máximo a "
         + str(Diamaxconf.strftime("%d/%m/%Y"))
-        + " em que se esperam "
-        + "\n"
+        + " com "
         + str(amplitudeconf)
-        + " casos.",
-        fontsize=10,
+        + " casos."
     )
 
-    ax.text(
-        60.2,
-        7000,
-        r"Fazendo uma previsão (adicionando 1/6 da diferença"
-        + "\n"
-        + "entre os suspeitos e confirmados) com base nos dados"
-        + "\n"
-        + "o numero máximo de infectados será atingido no dia "
-        + "\n"
-        + str(Diamaxpre.strftime("%d/%m/%Y"))
-        + " em que se esperam "
-        + str(pred)
-        + " casos.",
-        fontsize=10,
-    )
+    # ax1.set_ylabel("Casos")
+    ax1.plot(x, yconfirmados, "ro", label="Casos confirmados")
+    ax1.plot(xconf, outputconf, label="Fit Logístico")
+    ax1.xaxis.set_visible(False)
+    ax1.legend()
 
-    ax.plot(x, yconfirmados, "ro", label="Casos confirmados")
-    ax.plot(x, outputconf, label="Fit casos confirmados")
-    ax.plot(x, ysuspeitos, "bo", label="Casos suspeitos")
-    ax.plot(x, outputsusp, label="Fit casos suspeitos")
-    ax.legend(loc="center left", bbox_to_anchor=(0.02, 0.3))
+    ax2.set_ylabel("Casos")
+    ax2.bar(date, cumconf, width=0.8, label="Cumulativo", color="g")
+    ax2.legend()
+
+    # ax3.set_xlabel("Dia do ano")
+    # ax3.set_ylabel("Casos")
+    # ax3.plot(x, ysuspeitos, "mo", label="Casos suspeitos")
+    # ax3.plot(date, outputsusp, label="Fit Logístico")
+    # ax3.legend()
+    plt.gca().xaxis.set_major_formatter(mdates.DateFormatter("%Y-%m-%d"))
+    plt.gca().xaxis.set_major_locator(mdates.DayLocator(interval=4))
+    plt.gcf().autofmt_xdate()
     plt.show()
 
 
-#%%
-def predictions(df):  # make everything
+def export(x, out, cumu, dias, data):
+
+    file = open("Previsoes.csv", "w")
+    file.write("Dia do ano, Data ,Fit_Logistico_Confirmados,Cumulativo" + "\n")
+    for i in range(61, dias):
+        line = (
+            str(i)
+            + ","
+            + str(data[i - 61])
+            + ","
+            + str(out[i - 61])
+            + ","
+            + str(cumu[i - 61])
+        )
+        file.write(line + "\n")
+
+    file.close()
+
+
+def predictions(df, dias):  # make everything
     x, ysuspeitos, yconfirmados = generate_data(df)
-    amplitudeconf, centerconf, outputconf, outputconfreport = fitlogistic(
-        x, yconfirmados
-    )
-    amplitudesusp, centersusp, outputsusp, outputsuspreport = fitlogistic(x, ysuspeitos)
+    (
+        amplitudeconf,
+        centerconf,
+        sigmaconf,
+        xconf,
+        outputconf,
+        cumconf,
+        outputconfreport,
+    ) = fitlogistic(x, yconfirmados, dias)
+    (
+        amplitudesusp,
+        centersusp,
+        sigmasusp,
+        xsusp,
+        outputsusp,
+        cumsusp,
+        outputsuspreport,
+    ) = fitlogistic(x, ysuspeitos, dias)
     Diaconf, Diamaxconf = convertdateconf(centerconf)
     Diasusp, Diamaxsusp = convertdatesusp(centersusp)
-    Diamaxpre, pred = predict16(amplitudesusp, amplitudeconf, Diaconf, Diasusp)
+    dateplot, dateexport = datas(xconf)
     plot(
         x,
+        xconf,
+        xsusp,
+        dateplot,
         yconfirmados,
         outputconf,
+        cumconf,
         ysuspeitos,
         outputsusp,
         Diamaxconf,
         amplitudeconf,
-        Diamaxpre,
-        pred,
     )
+    export(xconf, outputconf, cumconf, dias, dateexport)
 
 
 #%%
 # Running
 if __name__ == "__main__":
     df = pd.read_excel(r"D:\PC\Desktop\Corona\coronadata.xlsx")
-    predictions(df)
+    diasdeprevisao = 50  # previsão para quantos dias?
+    dias = 61 + diasdeprevisao
+    predictions(df, dias)
 
 
 # %%
