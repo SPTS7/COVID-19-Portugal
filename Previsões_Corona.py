@@ -51,7 +51,7 @@ def fitlogistic(x, y, dias):  # fit a logistic function
 
 
 def fiterf(x, y, dias):  # fit a logistic function
-    model = StepModel(form="erf")
+    model = StepModel(form="arctan")
     # parameters to fit guesses by lmfit
     parameters = model.guess(y, x=x)
     output = model.fit(y, parameters, x=x)
@@ -138,6 +138,7 @@ def plot(  # plot all the data
     ax1.plot(x, yconfirmados, "ro", label="Casos confirmados")
     ax1.plot(xconf, outputconf, label="Fit Logístico")
     ax1.xaxis.set_visible(False)
+    ax1.set_ylim(-5, 7000)
     ax1.legend()
 
     ax2.set_ylabel("Casos")
@@ -145,9 +146,10 @@ def plot(  # plot all the data
     ax2.xaxis.set_visible(False)
     ax2.legend()
 
-    ax3.plot(x, yconfirmados, "mo", label="Casos suspeitos")
+    ax3.plot(x, yconfirmados, "mo", label="Casos confirmados")
     ax3.plot(xconf, erfoutputconf, label="Fit Função de Erro")
     ax3.xaxis.set_visible(False)
+    ax3.set_ylim(-5, 7000)
     ax3.legend()
 
     ax4.set_ylabel("Casos")
