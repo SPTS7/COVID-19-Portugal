@@ -18,7 +18,7 @@ import matplotlib.dates as mdates
 
 
 def generate_data(df):  # generate dataframes from csv file
-    return df["Dia Ano"], df["Suspeitos"], df["Confirmados"]
+    return df["Dia Ano"], df["Suspeitos"], df["Confirmados"], len(df)
 
 
 def fitlogistic(x, y, dias):  # fit a logistic function
@@ -50,29 +50,33 @@ def fitlogistic(x, y, dias):  # fit a logistic function
     return amplitude, center, sigma, xfit, fit, cumulative, output.fit_report()
 
 
-def fiterf(x, y, dias):  # fit a logistic function
-    model = StepModel(form="arctan")
-    # parameters to fit guesses by lmfit
-    parameters = model.guess(y, x=x)
-    output = model.fit(y, parameters, x=x)
-    amplitude = output.params["amplitude"].value
+def fitGompertz(x, y, dias):  # fit a logistic function~
+    def Gompertz(a, b, c, x):
+        return a * np.exp(-1 * np.exp(-b * (x - c)))
+
+    model = Model(Gompertz, independent_vars=["x"])
+
+    params = model.make_params()
+    params["a"].value = 10000
+    params["b"].value = 0.05
+    params["c"].value = 100
+    output = model.fit(y, params, x=x)
+    amplitude = output.params["a"].value
     amplitude = math.floor(amplitude)
-    center = output.params["center"].value
-    sigma = output.params["sigma"].value
+    center = output.params["c"].value
+    sigma = output.params["b"].value
     fit = []
     xfit = []
     cumulative = []
     for i in range(61, dias):
         if i == 61:
             xfit.append(i)
-            alpha = (i - center) / sigma
-            value = amplitude * (1 - (1 / (1 + math.exp(alpha))))
+            value = amplitude * np.exp(-1 * np.exp(-sigma * (i - center)))
             fit.append(value)
             cumulative.append(0)
         else:
             xfit.append(i)
-            alpha = (i - center) / sigma
-            value = amplitude * (1 - (1 / (1 + math.exp(alpha))))
+            value = amplitude * np.exp(-1 * np.exp(-sigma * (i - center)))
             fit.append(value)
             c = value - fit[i - 62]
             cumulative.append(c)
@@ -125,7 +129,7 @@ def plot(  # plot all the data
     fig.subplots_adjust(top=0.80)
 
     ax1.set_title(
-        "Ajustes logísticos"
+        "Ajustes logístico e de Gompertz"
         + "\n"
         + "Confirmados: máximo a "
         + str(Diamaxconf.strftime("%d/%m/%Y"))
@@ -138,7 +142,7 @@ def plot(  # plot all the data
     ax1.plot(x, yconfirmados, "ro", label="Casos confirmados")
     ax1.plot(xconf, outputconf, label="Fit Logístico")
     ax1.xaxis.set_visible(False)
-    ax1.set_ylim(-5, 7000)
+    ax1.set_ylim(-5, 10000)
     ax1.legend()
 
     ax2.set_ylabel("Casos")
@@ -147,13 +151,13 @@ def plot(  # plot all the data
     ax2.legend()
 
     ax3.plot(x, yconfirmados, "mo", label="Casos confirmados")
-    ax3.plot(xconf, erfoutputconf, label="Fit Função de Erro")
+    ax3.plot(xconf, erfoutputconf, label="Fit Gompertz")
     ax3.xaxis.set_visible(False)
-    ax3.set_ylim(-5, 7000)
+    # ax3.set_ylim(-5, 10000)
     ax3.legend()
 
     ax4.set_ylabel("Casos")
-    ax4.bar(date, erfcumconf, width=0.8, label="ERF Casos novos", color="g")
+    ax4.bar(date, erfcumconf, width=0.8, label="Gompertz Casos novos", color="g")
     ax4.legend()
 
     plt.gca().xaxis.set_major_formatter(mdates.DateFormatter("%Y-%m-%d"))
@@ -164,34 +168,53 @@ def plot(  # plot all the data
     plt.show()
 
 
-def export(x, out, erfout, cumu, erfcumu, dias, data):
+def export(x, out, erfout, cumu, erfcumu, dias, data, diaspassados, yconfirmados):
 
     file = open("Previsoes.csv", "w")
     file.write(
-        "Dia do ano, Data,Fit_Logistico_Confirmados,Novos_Casos,Fit_ERF_Confirmados,ERF_Novos_casos"
+        "Dia do ano, Data, Dados_dgs, Fit_Logistico_Confirmados,Novos_Casos,Fit_Gompertz_Confirmados,Gompertz_Novos_casos"
         + "\n"
     )
     for i in range(61, dias):
-        line = (
-            str(i)
-            + ","
-            + str(data[i - 61])
-            + ","
-            + str(out[i - 61])
-            + ","
-            + str(cumu[i - 61])
-            + ","
-            + str(erfout[i - 61])
-            + ","
-            + str(erfcumu[i - 61])
-        )
-        file.write(line + "\n")
+        if i - 61 < diaspassados:
+            line = (
+                str(i)
+                + ","
+                + str(data[i - 61])
+                + ","
+                + str(yconfirmados.loc[i - 61])
+                + ","
+                + str(out[i - 61])
+                + ","
+                + str(cumu[i - 61])
+                + ","
+                + str(erfout[i - 61])
+                + ","
+                + str(erfcumu[i - 61])
+            )
+            file.write(line + "\n")
+        else:
+            line = (
+                str(i)
+                + ","
+                + str(data[i - 61])
+                + ","
+                + ","
+                + str(out[i - 61])
+                + ","
+                + str(cumu[i - 61])
+                + ","
+                + str(erfout[i - 61])
+                + ","
+                + str(erfcumu[i - 61])
+            )
+            file.write(line + "\n")
 
     file.close()
 
 
 def predictions(df, dias):  # make everything
-    x, ysuspeitos, yconfirmados = generate_data(df)
+    x, ysuspeitos, yconfirmados, diaspassado = generate_data(df)
     (
         amplitudeconf,
         centerconf,
@@ -209,7 +232,7 @@ def predictions(df, dias):  # make everything
         erfoutputconf,
         erfcumconf,
         erfoutputconfreport,
-    ) = fiterf(x, yconfirmados, dias)
+    ) = fitGompertz(x, yconfirmados, dias)
     Diaconf, Diamaxconf = convertdateconf(centerconf)
     dateplot, dateexport = datas(xconf)
     plot(
@@ -225,14 +248,24 @@ def predictions(df, dias):  # make everything
         Diamaxconf,
         amplitudeconf,
     )
-    export(xconf, outputconf, erfoutputconf, cumconf, erfcumconf, dias, dateexport)
+    export(
+        xconf,
+        outputconf,
+        erfoutputconf,
+        cumconf,
+        erfcumconf,
+        dias,
+        dateexport,
+        diaspassado,
+        yconfirmados,
+    )
 
 
 #%%
 # Running
 if __name__ == "__main__":
     df = pd.read_excel(r"D:\PC\Desktop\Corona\coronadata.xlsx")
-    diasdeprevisao = 50  # previsão para quantos dias?
+    diasdeprevisao = 70  # previsão para quantos dias?
     dias = 61 + diasdeprevisao
     predictions(df, dias)
 
