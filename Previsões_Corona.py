@@ -13,6 +13,7 @@ import pandas as pd
 import datetime
 import matplotlib.dates as mdates
 
+
 #%%
 # Functions
 
@@ -118,7 +119,7 @@ def plot(  # plot all the data
     Diamaxconf,
     amplitudeconf,
 ):
-    fig = plt.figure()
+    fig = plt.figure(1)
     fig.suptitle("Casos de COVID-19 em portugal", fontsize=14, fontweight="bold")
 
     ax1 = fig.add_subplot(411)
@@ -157,7 +158,7 @@ def plot(  # plot all the data
     ax3.legend()
 
     ax4.set_ylabel("Casos")
-    ax4.bar(date, erfcumconf, width=0.8, label="Gompertz Casos novos", color="g")
+    bars = ax4.bar(date, erfcumconf, width=0.8, label="Gompertz Casos novos", color="g")
     ax4.legend()
 
     plt.gca().xaxis.set_major_formatter(mdates.DateFormatter("%Y-%m-%d"))
@@ -265,7 +266,7 @@ def predictions(df, dias):  # make everything
 # Running
 if __name__ == "__main__":
     df = pd.read_excel(r"D:\PC\Desktop\Corona\coronadata.xlsx")
-    diasdeprevisao = 70  # previsão para quantos dias?
+    diasdeprevisao = 50  # previsão para quantos dias?
     dias = 61 + diasdeprevisao
     predictions(df, dias)
 
