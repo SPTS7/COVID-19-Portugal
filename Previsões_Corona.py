@@ -12,7 +12,9 @@ from numpy import loadtxt
 import pandas as pd
 import datetime
 import matplotlib.dates as mdates
+import mpld3
 
+%matplotlib qt5
 
 #%%
 # Functions
@@ -119,6 +121,7 @@ def plot(  # plot all the data
     Diamaxconf,
     amplitudeconf,
 ):
+    mpld3.enable_notebook()
     fig = plt.figure(1)
     fig.suptitle("Casos de COVID-19 em portugal", fontsize=14, fontweight="bold")
 
