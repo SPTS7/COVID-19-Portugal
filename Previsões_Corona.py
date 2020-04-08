@@ -146,7 +146,7 @@ def plot(  # plot all the data
     ax1.plot(x, yconfirmados, "ro", label="Casos confirmados")
     ax1.plot(xconf, outputconf, label="Fit Logístico")
     ax1.xaxis.set_visible(False)
-    ax1.set_ylim(-5, 15000)
+    #ax1.set_ylim(-5, 15000)
     ax1.legend()
 
     ax2.set_ylabel("Casos")
@@ -228,6 +228,7 @@ def predictions(df, dias):  # make everything
         cumconf,
         outputconfreport,
     ) = fitlogistic(x, yconfirmados, dias)
+    print(outputconfreport)
     (
         erfamplitudeconf,
         erfcenterconf,
@@ -237,6 +238,7 @@ def predictions(df, dias):  # make everything
         erfcumconf,
         erfoutputconfreport,
     ) = fitGompertz(x, yconfirmados, dias)
+    print(erfoutputconfreport)
     Diaconf, Diamaxconf = convertdateconf(centerconf)
     dateplot, dateexport = datas(xconf)
     plot(
