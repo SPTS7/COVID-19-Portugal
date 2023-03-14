@@ -270,7 +270,7 @@ def predictions(df, dias):  # make everything
 #%%
 # Running
 if __name__ == "__main__":
-    df = pd.read_excel(r"D:\PC\Desktop\Corona\coronadata.xlsx")
+    df = pd.read_excel(r"coronadata.xlsx")
     diasdeprevisao = 100  # previsão para quantos dias?
     dias = 61 + diasdeprevisao
     predictions(df, dias)
