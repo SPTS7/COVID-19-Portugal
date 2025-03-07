@@ -170,7 +170,3 @@ The following files will be generated:
 ## License
 
 This project is licensed under the MIT License.
-
----
-
-This README provides an overview of the functionality, how to set up and run the project, and descriptions of the key functions. You can adjust the details further if necessary!
